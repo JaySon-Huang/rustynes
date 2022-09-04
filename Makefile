@@ -19,4 +19,4 @@ clean:
 	rm -rf target/release
 
 standalone:
-	cargo rustc -p standalone --release
+	RUSTFLAGS="-L /opt/homebrew/lib" cargo rustc -p standalone --release

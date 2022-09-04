@@ -553,7 +553,7 @@ fn rotate_to_left<T: CpuRegisters>(registers: &mut T, v: Data) -> Data {
 
 fn push<T: CpuRegisters, U: CpuBus>(data: Data, registers: &mut T, bus: &mut U) {
     let addr = registers.get_SP() as Addr;
-    bus.write((addr | 0x0100), data);
+    bus.write(addr | 0x0100, data);
     registers.dec_SP();
 }
 

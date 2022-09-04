@@ -13,6 +13,7 @@ use super::types::Data;
 
 pub fn reset<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     let pc = bus.read_word(0xFFFC);
+    // println!("read address {:X} @ {:X}", pc, 0xFFFC);
     registers.set_PC(pc);
 }
 
@@ -26,6 +27,7 @@ pub fn run<T: CpuRegisters + Debug, U: CpuBus>(
         *nmi = false;
     }
     let code = fetch(registers, bus);
+    // println!("code: {:X}", code);
     let ref map = opecode::MAP;
     let code = &*map.get(&code).unwrap();
     let operand = fetch_operand(&code, registers, bus);
@@ -110,7 +112,6 @@ pub fn run<T: CpuRegisters + Debug, U: CpuBus>(
         Instruction::RLA => println!("{}", "TODO:Undocumented instruction"),
         Instruction::SRE => println!("{}", "TODO:Undocumented instruction"),
         Instruction::RRA => println!("{}", "TODO:Undocumented instruction"),
-        _ => panic!("{}", "Undefined opecode detected."),
     }
     code.cycle
 }

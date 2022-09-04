@@ -182,7 +182,7 @@ fn main() {
         },
         Result::Err(err) => {
             eprintln!("Cannot open .nes file: {}", filename);
-            panic!(err);
+            panic!("{}", err);
         }
     }
 }
