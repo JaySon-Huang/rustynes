@@ -21,7 +21,7 @@ pub trait PaletteRam {
 
 impl Palette {
     pub fn new() -> Self {
-        Palette(vec!(0; 0x20))
+        Palette(vec![0; 0x20])
     }
 
     fn is_sprite_mirror(&self, addr: Addr) -> bool {

@@ -1,6 +1,6 @@
-use super::types::{Data};
-use nes::ram::Ram;
+use super::types::Data;
 use nes::ppu::Ppu;
+use nes::ram::Ram;
 
 #[derive(Debug)]
 pub struct Dma {
@@ -23,7 +23,7 @@ impl Dma {
 
     pub fn should_run(&self) -> bool {
         self.should_run
-    }    
+    }
 
     pub fn run(&mut self, ram: &Ram, ppu: &mut Ppu) {
         let addr = (self.register as u16) << 8;

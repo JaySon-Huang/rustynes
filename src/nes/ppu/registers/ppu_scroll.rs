@@ -1,4 +1,3 @@
-
 use super::super::super::types::Data;
 
 #[derive(Debug)]
@@ -25,7 +24,7 @@ impl PpuScroll {
 
     pub fn enable_x(&mut self) {
         self.enable = Enable::X;
-    }    
+    }
 
     pub fn get_x(&self) -> Data {
         self.x
@@ -33,14 +32,14 @@ impl PpuScroll {
 
     pub fn get_y(&self) -> Data {
         self.y
-    }    
+    }
 
     pub fn write(&mut self, data: Data) {
         match self.enable {
             Enable::X => {
                 self.enable = Enable::Y;
                 self.x = data;
-            },
+            }
             Enable::Y => {
                 self.enable = Enable::X;
                 self.y = data;

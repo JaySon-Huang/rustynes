@@ -1,4 +1,4 @@
-use super::super::super::types::{Data, Addr};
+use super::super::super::types::{Addr, Data};
 use super::super::super::Ram;
 use super::super::palette::*;
 
@@ -38,12 +38,14 @@ impl PpuData {
         buf
     }
 
-    pub fn write<P: PaletteRam>(&mut self,
-                                vram: &mut Ram,
-                                cram: &mut Ram,
-                                addr: Addr,
-                                data: Data,
-                                palette: &mut P) {
+    pub fn write<P: PaletteRam>(
+        &mut self,
+        vram: &mut Ram,
+        cram: &mut Ram,
+        addr: Addr,
+        data: Data,
+        palette: &mut P,
+    ) {
         if addr >= 0x2000 {
             if addr >= 0x3f00 && addr < 0x4000 {
                 palette.write(addr - 0x3f00, data);

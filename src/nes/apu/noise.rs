@@ -1,5 +1,5 @@
-use super::constants::{NOISE_TIMER_PERIOD_TABLE, GROBAL_GAIN, CPU_CLOCK, COUNTER_TABLE};
-use nes::types::{Data, Addr};
+use super::constants::{COUNTER_TABLE, CPU_CLOCK, GROBAL_GAIN, NOISE_TIMER_PERIOD_TABLE};
+use nes::types::{Addr, Data};
 
 #[derive(Debug)]
 pub struct Noise {
@@ -20,7 +20,7 @@ extern "C" {
     fn set_noise_volume(volume: f32);
     fn stop_noise();
     fn start_noise();
-// fn close_noise();
+    // fn close_noise();
 }
 
 impl Noise {
@@ -48,7 +48,6 @@ impl Noise {
         self.enable = false;
         self.stop();
     }
-
 
     fn get_volume(&self) -> f32 {
         let vol = if self.envelope_enable {
@@ -91,7 +90,6 @@ impl Noise {
                 self.stop();
             }
         }
-
     }
 
     pub fn has_count_end(&self) -> bool {
@@ -104,9 +102,9 @@ impl Noise {
 
     fn set_frequency(&self, data: Data) {
         unsafe {
-            set_noise_frequency(CPU_CLOCK as f32 /
-                                NOISE_TIMER_PERIOD_TABLE[data as usize & 0xF] as f32 /
-                                2f32)
+            set_noise_frequency(
+                CPU_CLOCK as f32 / NOISE_TIMER_PERIOD_TABLE[data as usize & 0xF] as f32 / 2f32,
+            )
         }
     }
 
@@ -121,7 +119,7 @@ impl Noise {
             0x02 => {
                 // this.isShortPeriod = !!(data & 0x80);
                 self.set_frequency(data);
-            }    
+            }
             0x03 => {
                 if self.is_length_counter_enable {
                     self.length_counter = COUNTER_TABLE[(data as usize & 0xF8) >> 3] as usize;
@@ -132,7 +130,7 @@ impl Noise {
                     self.set_volume();
                     self.start();
                 }
-            }                        
+            }
             _ => (),
         }
     }

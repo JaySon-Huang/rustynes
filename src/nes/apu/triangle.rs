@@ -1,5 +1,5 @@
 use super::constants::*;
-use nes::types::{Data, Addr};
+use nes::types::{Addr, Data};
 
 #[derive(Debug)]
 pub struct Triangle {
@@ -122,7 +122,7 @@ impl Triangle {
                 self.divider_for_frequency |= data as usize;
                 self.update_frequency();
                 self.change_frequency();
-            }    
+            }
             0x03 => {
                 // Programmable timer, length counter
                 self.divider_for_frequency &= 0xFF;
@@ -135,7 +135,7 @@ impl Triangle {
                 if self.enable {
                     self.start();
                 }
-            }                        
+            }
             _ => (),
         }
     }

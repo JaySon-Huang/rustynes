@@ -1,6 +1,6 @@
 use super::super::types::Addr;
-use super::super::Ram;
 use super::super::Mmc;
+use super::super::Ram;
 
 pub type Sprite = Vec<Vec<u8>>;
 
@@ -38,8 +38,9 @@ pub fn get_sprite_id(vram: &Ram, position: &SpritePosition, config: &SpriteConfi
 }
 
 pub fn get_attribute(vram: &Ram, position: &SpritePosition, config: &SpriteConfig) -> u8 {
-    let addr = 0x03C0 + ((position.0 / 4) + ((position.1 / 4) * 8)) as u16 +
-               config.offset_addr_by_name_table.unwrap();
+    let addr = 0x03C0
+        + ((position.0 / 4) + ((position.1 / 4) * 8)) as u16
+        + config.offset_addr_by_name_table.unwrap();
     vram.read(mirror_down_sprite_addr(addr, config.is_horizontal_mirror))
 }
 

@@ -1,11 +1,10 @@
-use super::super::super::types::{Data, Addr};
 use super::super::super::ram::*;
+use super::super::super::types::{Addr, Data};
 
 #[derive(Debug)]
 pub struct Oam {
     addr: Addr,
 }
-
 
 impl Oam {
     pub fn new() -> Self {
@@ -46,7 +45,6 @@ impl Oam {
         ram.read(self.addr)
     }
 }
-
 
 #[test]
 fn set_addr() {

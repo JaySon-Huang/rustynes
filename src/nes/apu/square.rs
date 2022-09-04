@@ -1,5 +1,5 @@
 use super::constants::*;
-use nes::types::{Data, Addr};
+use nes::types::{Addr, Data};
 
 #[derive(Debug)]
 pub struct Square {
@@ -92,14 +92,11 @@ impl Square {
             // sweep mode 0 : newPeriod = currentPeriod - (currentPeriod >> N)
             // sweep mode 1 : newPeriod = currentPeriod + (currentPeriod >> N)
             if self.sweep_mode {
-                self.divider_for_frequency = self.divider_for_frequency -
-                                             (self.divider_for_frequency >>
-                                              self.sweep_shift_amount);
+                self.divider_for_frequency = self.divider_for_frequency
+                    - (self.divider_for_frequency >> self.sweep_shift_amount);
             } else {
-                self.divider_for_frequency = self.divider_for_frequency +
-                                             (self.divider_for_frequency >>
-                                              self.sweep_shift_amount);
-
+                self.divider_for_frequency = self.divider_for_frequency
+                    + (self.divider_for_frequency >> self.sweep_shift_amount);
             };
             if self.divider_for_frequency > 0x7FF {
                 self.stop();
@@ -212,7 +209,7 @@ impl Square {
                 self.divider_for_frequency = (self.divider_for_frequency & 0x700) | data as usize;
                 self.update_frequency();
                 self.change_frequency();
-            }    
+            }
             0x03 => {
                 // Programmable timer, length counter
                 self.divider_for_frequency &= 0xFF;
@@ -228,7 +225,7 @@ impl Square {
                 if self.enable {
                     self.start();
                 }
-            }                        
+            }
             _ => (),
         }
     }

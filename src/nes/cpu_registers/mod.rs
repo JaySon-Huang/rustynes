@@ -139,10 +139,14 @@ impl CpuRegisters for Registers {
     }
 
     fn get_P(&self) -> u8 {
-        bool_to_u8(self.P.negative) << 7 | bool_to_u8(self.P.overflow) << 6 |
-        bool_to_u8(self.P.reserved) << 5 | bool_to_u8(self.P.break_mode) << 4 |
-        bool_to_u8(self.P.decimal_mode) << 3 | bool_to_u8(self.P.interrupt) << 2 |
-        bool_to_u8(self.P.zero) << 1 | bool_to_u8(self.P.carry) as u8
+        bool_to_u8(self.P.negative) << 7
+            | bool_to_u8(self.P.overflow) << 6
+            | bool_to_u8(self.P.reserved) << 5
+            | bool_to_u8(self.P.break_mode) << 4
+            | bool_to_u8(self.P.decimal_mode) << 3
+            | bool_to_u8(self.P.interrupt) << 2
+            | bool_to_u8(self.P.zero) << 1
+            | bool_to_u8(self.P.carry) as u8
     }
 
     fn set_A(&mut self, v: u8) -> &mut Self {

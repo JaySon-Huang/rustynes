@@ -25,27 +25,27 @@ pub struct Registers {
 }
 
 // PPU power up state
-  // see. https://wiki.nesdev.com/w/index.php/PPU_power_up_state
-  //
-  // Memory map
-  /*
-  | addr           |  description               |
-  +----------------+----------------------------+
-  | 0x0000-0x0FFF  |  Pattern table#0           |
-  | 0x1000-0x1FFF  |  Pattern table#1           |
-  | 0x2000-0x23BF  |  Name table                |
-  | 0x23C0-0x23FF  |  Attribute table           |
-  | 0x2400-0x27BF  |  Name table                |
-  | 0x27C0-0x27FF  |  Attribute table           |
-  | 0x2800-0x2BBF  |  Name table                |
-  | 0x2BC0-0x2BFF  |  Attribute table           |
-  | 0x2C00-0x2FBF  |  Name Table                |
-  | 0x2FC0-0x2FFF  |  Attribute Table           |
-  | 0x3000-0x3EFF  |  mirror of 0x2000-0x2EFF   |
-  | 0x3F00-0x3F0F  |  background Palette        |
-  | 0x3F10-0x3F1F  |  sprite Palette            |
-  | 0x3F20-0x3FFF  |  mirror of 0x3F00-0x3F1F   |
-  */
+// see. https://wiki.nesdev.com/w/index.php/PPU_power_up_state
+//
+// Memory map
+/*
+| addr           |  description               |
++----------------+----------------------------+
+| 0x0000-0x0FFF  |  Pattern table#0           |
+| 0x1000-0x1FFF  |  Pattern table#1           |
+| 0x2000-0x23BF  |  Name table                |
+| 0x23C0-0x23FF  |  Attribute table           |
+| 0x2400-0x27BF  |  Name table                |
+| 0x27C0-0x27FF  |  Attribute table           |
+| 0x2800-0x2BBF  |  Name table                |
+| 0x2BC0-0x2BFF  |  Attribute table           |
+| 0x2C00-0x2FBF  |  Name Table                |
+| 0x2FC0-0x2FFF  |  Attribute Table           |
+| 0x3000-0x3EFF  |  mirror of 0x2000-0x2EFF   |
+| 0x3F00-0x3F0F  |  background Palette        |
+| 0x3F10-0x3F1F  |  sprite Palette            |
+| 0x3F20-0x3FFF  |  mirror of 0x3F00-0x3F1F   |
+*/
 
 pub trait PpuRegisters {
     fn read<P: PaletteRam>(&mut self, addr: Addr, ctx: &mut PpuCtx<P>) -> Data;
@@ -105,7 +105,7 @@ impl Registers {
     | 7    | 1: VBlank clear by reading this register    |
     | 6    | 1: sprite hit                               |
     | 5    | 0: less than 8, 1: 9 or more                |
-    | 4-0  | invalid                                     |                                 
+    | 4-0  | invalid                                     |
     |      | bit4 VRAM write flag [0: success, 1: fail]  |
     */
     fn read_status(&mut self) -> Data {
@@ -240,20 +240,20 @@ impl PpuRegisters for Registers {
     fn write<P: PaletteRam>(&mut self, addr: Addr, data: Data, ctx: &mut PpuCtx<P>) {
         match addr {
             /*
-                Control Register1 0x2000
-              | bit  | description                                 |
-              +------+---------------------------------------------+
-              |  7   | Assert NMI when VBlank 0: disable, 1:enable |
-              |  6   | PPU master/slave, always 1                  |
-              |  5   | Sprite size 0: 8x8, 1: 8x16                 |
-              |  4   | Bg pattern table 0:0x0000, 1:0x1000         |
-              |  3   | sprite pattern table 0:0x0000, 1:0x1000     |
-              |  2   | PPU memory increment 0: +=1, 1:+=32         |
-              |  1-0 | Name table 0x00: 0x2000                     |
-              |      |            0x01: 0x2400                     |
-              |      |            0x02: 0x2800                     |
-              |      |            0x03: 0x2C00                     |
-              */
+              Control Register1 0x2000
+            | bit  | description                                 |
+            +------+---------------------------------------------+
+            |  7   | Assert NMI when VBlank 0: disable, 1:enable |
+            |  6   | PPU master/slave, always 1                  |
+            |  5   | Sprite size 0: 8x8, 1: 8x16                 |
+            |  4   | Bg pattern table 0:0x0000, 1:0x1000         |
+            |  3   | sprite pattern table 0:0x0000, 1:0x1000     |
+            |  2   | PPU memory increment 0: +=1, 1:+=32         |
+            |  1-0 | Name table 0x00: 0x2000                     |
+            |      |            0x01: 0x2400                     |
+            |      |            0x02: 0x2800                     |
+            |      |            0x03: 0x2C00                     |
+            */
             0x0000 => self.ppu_ctrl1 = data,
             /*
                Control Register2 0x2001

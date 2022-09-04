@@ -1,9 +1,9 @@
 mod color;
 
-use super::{BackgroundField, BackgroundCtx};
-use super::PaletteList;
-use super::{Sprite, SpritesWithCtx, SpritePosition};
 use self::color::COLORS;
+use super::PaletteList;
+use super::{BackgroundCtx, BackgroundField};
+use super::{Sprite, SpritePosition, SpritesWithCtx};
 
 extern "C" {
     fn canvas_render(ptr: *const u8, len: usize);
@@ -14,10 +14,11 @@ pub struct Renderer {
     buf: Vec<u8>,
 }
 
-
 impl Renderer {
     pub fn new() -> Self {
-        Renderer { buf: vec![0xFF; 256 * 224 * 4] }
+        Renderer {
+            buf: vec![0xFF; 256 * 224 * 4],
+        }
     }
 
     pub fn render(&mut self, background: &BackgroundField, sprites: &SpritesWithCtx) {
@@ -53,20 +54,24 @@ impl Renderer {
 
     fn render_sprites(&mut self, sprites: &SpritesWithCtx, background: &BackgroundField) {
         for sprite in sprites {
-            self.render_sprite(&sprite.sprite,
-                               &sprite.position,
-                               &sprite.palette,
-                               sprite.attr,
-                               &background);
+            self.render_sprite(
+                &sprite.sprite,
+                &sprite.position,
+                &sprite.palette,
+                sprite.attr,
+                &background,
+            );
         }
     }
 
-    fn render_sprite(&mut self,
-                     sprite: &Sprite,
-                     position: &SpritePosition,
-                     palette: &PaletteList,
-                     attr: u8,
-                     background: &BackgroundField) {
+    fn render_sprite(
+        &mut self,
+        sprite: &Sprite,
+        position: &SpritePosition,
+        palette: &PaletteList,
+        attr: u8,
+        background: &BackgroundField,
+    ) {
         let is_vertical_reverse = (attr & 0x80) == 0x80;
         let is_horizontal_reverse = (attr & 0x40) == 0x40;
         let is_low_priority = (attr & 0x20) == 0x20;
@@ -99,7 +104,6 @@ impl Renderer {
             }
         }
     }
-
 
     fn render_tile(&mut self, bg: &BackgroundCtx, x: usize, y: usize) {
         let offset_x = (bg.scroll_x % 8) as i32;

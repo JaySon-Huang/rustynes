@@ -1,7 +1,7 @@
-use super::super::cpu_registers::CpuRegisters;
 use super::super::bus::cpu_bus::CpuBus;
-use super::super::types::{Data, Addr, Word};
+use super::super::cpu_registers::CpuRegisters;
 use super::super::helper::*;
+use super::super::types::{Addr, Data, Word};
 
 pub fn process_nmi<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     registers.set_break(false);
@@ -72,18 +72,12 @@ pub fn sty<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &m
 
 pub fn txa<T: CpuRegisters>(registers: &mut T) {
     let x = registers.get_X();
-    registers
-        .set_A(x)
-        .update_negative_by(x)
-        .update_zero_by(x);
+    registers.set_A(x).update_negative_by(x).update_zero_by(x);
 }
 
 pub fn tya<T: CpuRegisters>(registers: &mut T) {
     let y = registers.get_Y();
-    registers
-        .set_A(y)
-        .update_negative_by(y)
-        .update_zero_by(y);
+    registers.set_A(y).update_negative_by(y).update_zero_by(y);
 }
 
 pub fn txs<T: CpuRegisters>(registers: &mut T) {
@@ -133,19 +127,17 @@ pub fn pha<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
 
 pub fn pla<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     let v = pop(registers, bus);
-    registers
-        .set_A(v)
-        .update_negative_by(v)
-        .update_zero_by(v);
+    registers.set_A(v).update_negative_by(v).update_zero_by(v);
 }
 
 pub fn adc_imm<T: CpuRegisters>(operand: Word, registers: &mut T) {
-    let computed = (operand as u16) + registers.get_A() as u16 +
-                   bool_to_u8(registers.get_carry()) as u16;
+    let computed =
+        (operand as u16) + registers.get_A() as u16 + bool_to_u8(registers.get_carry()) as u16;
     let acc = registers.get_A();
     registers
-        .set_overflow(!(((acc ^ (operand as Data)) & 0x80) != 0) &&
-                      (((acc ^ computed as Data) & 0x80)) != 0)
+        .set_overflow(
+            !(((acc ^ (operand as Data)) & 0x80) != 0) && ((acc ^ computed as Data) & 0x80) != 0,
+        )
         .update_negative_by(computed as Data)
         .update_zero_by(computed as Data)
         .set_carry(computed > 0xFF)
@@ -154,12 +146,13 @@ pub fn adc_imm<T: CpuRegisters>(operand: Word, registers: &mut T) {
 
 pub fn adc<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &mut U) {
     let fetched = bus.read(operand);
-    let computed = fetched as u16 + registers.get_A() as u16 +
-                   bool_to_u8(registers.get_carry()) as u16;
+    let computed =
+        fetched as u16 + registers.get_A() as u16 + bool_to_u8(registers.get_carry()) as u16;
     let acc = registers.get_A();
     registers
-        .set_overflow(!(((acc ^ (fetched as Data)) & 0x80) != 0) &&
-                      (((acc ^ computed as Data) & 0x80)) != 0)
+        .set_overflow(
+            !(((acc ^ (fetched as Data)) & 0x80) != 0) && ((acc ^ computed as Data) & 0x80) != 0,
+        )
         .update_negative_by(computed as Data)
         .update_zero_by(computed as Data)
         .set_carry(computed > 0xFF)
@@ -167,12 +160,13 @@ pub fn adc<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &m
 }
 
 pub fn sbc_imm<T: CpuRegisters>(operand: Word, registers: &mut T) {
-    let computed = registers.get_A() as i16 - (operand as i16) -
-                   bool_to_u8(!registers.get_carry()) as i16;
+    let computed =
+        registers.get_A() as i16 - (operand as i16) - bool_to_u8(!registers.get_carry()) as i16;
     let acc = registers.get_A();
     registers
-        .set_overflow((((acc ^ (operand as Data)) & 0x80) != 0) &&
-                      (((acc ^ computed as Data) & 0x80)) != 0)
+        .set_overflow(
+            (((acc ^ (operand as Data)) & 0x80) != 0) && ((acc ^ computed as Data) & 0x80) != 0,
+        )
         .update_negative_by(computed as Data)
         .update_zero_by(computed as Data)
         .set_carry(computed >= 0 as i16)
@@ -181,12 +175,13 @@ pub fn sbc_imm<T: CpuRegisters>(operand: Word, registers: &mut T) {
 
 pub fn sbc<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &mut U) {
     let fetched = bus.read(operand);
-    let computed = registers.get_A() as i16 - fetched as i16 -
-                   bool_to_u8(!registers.get_carry()) as i16;
+    let computed =
+        registers.get_A() as i16 - fetched as i16 - bool_to_u8(!registers.get_carry()) as i16;
     let acc = registers.get_A();
     registers
-        .set_overflow((((acc ^ (fetched as Data)) & 0x80) != 0) &&
-                      (((acc ^ computed as Data) & 0x80)) != 0)
+        .set_overflow(
+            (((acc ^ (fetched as Data)) & 0x80) != 0) && ((acc ^ computed as Data) & 0x80) != 0,
+        )
         .update_negative_by(computed as Data)
         .update_zero_by(computed as Data)
         .set_carry(computed >= 0 as i16)
@@ -386,18 +381,12 @@ pub fn ror<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &m
 
 pub fn inx<T: CpuRegisters>(registers: &mut T) {
     let x = registers.get_X() + 1;
-    registers
-        .set_X(x)
-        .update_negative_by(x)
-        .update_zero_by(x);
+    registers.set_X(x).update_negative_by(x).update_zero_by(x);
 }
 
 pub fn iny<T: CpuRegisters>(registers: &mut T) {
     let y = registers.get_Y() + 1;
-    registers
-        .set_Y(y)
-        .update_negative_by(y)
-        .update_zero_by(y);
+    registers.set_Y(y).update_negative_by(y).update_zero_by(y);
 }
 
 pub fn inc<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &mut U) {
@@ -600,7 +589,7 @@ mod test {
 
     impl MockBus {
         pub fn new() -> Self {
-            MockBus { mem: vec!(0; 1024) }
+            MockBus { mem: vec![0; 1024] }
         }
     }
 
@@ -716,7 +705,6 @@ mod test {
         tay(&mut reg);
         assert_eq!(reg.get_Y(), 0xA5);
     }
-
 
     #[test]
     fn test_tya() {

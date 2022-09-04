@@ -78,16 +78,16 @@ impl Apu {
 
     pub fn write(&mut self, addr: Addr, data: Data) {
         match addr {
-            0x00...0x03 => {
+            0x00..=0x03 => {
                 self.squares.0.write(addr, data);
             }
-            0x04...0x07 => {
+            0x04..=0x07 => {
                 self.squares.1.write(addr - 0x04, data);
             }
-            0x08...0x0b => {
+            0x08..=0x0b => {
                 self.triangle.write(addr - 0x08, data);
             }
-            0x0c...0x0f => {
+            0x0c..=0x0f => {
                 self.noise.write(addr - 0x0c, data);
             }
             0x15 => {

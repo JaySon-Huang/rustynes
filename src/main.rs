@@ -2,8 +2,8 @@
 extern crate lazy_static;
 extern crate libc;
 
-mod nes;
 mod externs;
+mod nes;
 
 use nes::Context;
 
