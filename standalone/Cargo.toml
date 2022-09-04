@@ -5,6 +5,8 @@ authors = ["tyfkda <tyfkda@gmail.com>"]
 
 [dependencies]
 sdl2 = "0.32.2"
+log = "0.4"
+regex = "1.6"
 rustynes = { path = ".." }
 
 [[bin]]

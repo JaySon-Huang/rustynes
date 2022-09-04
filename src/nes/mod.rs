@@ -1,3 +1,6 @@
+extern crate log;
+extern crate regex;
+
 mod apu;
 mod bus;
 mod cpu;
@@ -26,7 +29,7 @@ use self::mmc::*;
 use self::ppu::*;
 use self::ram::Ram;
 use self::rom::Rom;
-use nes::types::Data;
+use self::types::{Addr, Data};
 
 const DMA_CYCLES: u16 = 514;
 
@@ -57,6 +60,19 @@ pub fn reset(ctx: &mut Context) {
     cpu::reset(&mut ctx.cpu_registers, &mut cpu_bus);
 }
 
+fn reset_with_addr(ctx: &mut Context, addr: Addr) {
+    let mut cpu_bus = cpu_bus::Bus::new(
+        &ctx.program_rom,
+        &mut ctx.work_ram,
+        &mut ctx.ppu,
+        &mut ctx.apu,
+        &mut ctx.keypad,
+        &mut ctx.dma,
+        &mut ctx.mmc,
+    );
+    cpu::reset_with_addr(&mut ctx.cpu_registers, &mut cpu_bus, addr);
+}
+
 pub fn run(ctx: &mut Context, key_state: u8) {
     ctx.keypad.update(key_state);
     loop {
@@ -73,7 +89,7 @@ pub fn run(ctx: &mut Context, key_state: u8) {
                 &mut ctx.dma,
                 &mut ctx.mmc,
             );
-            cpu::run(&mut ctx.cpu_registers, &mut cpu_bus, &mut ctx.nmi) as u16
+            cpu::step(&mut ctx.cpu_registers, &mut cpu_bus, &mut ctx.nmi) as u16
         };
         ctx.apu.run(cycle);
         let is_ready = ctx.ppu.run((cycle * 3) as usize, &mut ctx.nmi, &ctx.mmc);
@@ -109,6 +125,113 @@ impl Context {
             nmi: false,
             mmc: Mmc::new(cassette.mapper, 0),
             renderer: Renderer::new(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use std::io::BufRead;
+
+    use crate::nes::cpu_registers::CpuRegisters;
+
+    use super::*;
+
+    struct NesTestLog {
+        // program counter
+        pc: u16,
+        // CPU op code
+        opbytes: String,
+        // CPU op code in assembly language
+        // (along with address)
+        _instruction: String,
+        // CPU registers except PC
+        regs: String,
+        // CPU & PPU clock cycles
+        _ppu: String,
+        _cycle: u32,
+    }
+
+    impl NesTestLog {
+        fn new(line: &String) -> Self {
+            let pc = &line[0..4];
+            let opbytes = &line[6..14];
+            let instruction = &line[15..48];
+            lazy_static! {
+                // static ref RE: Regex = Regex::new(r"^A:(?P<A>[0-9A-F]{2}) X:(?P<X>[0-9A-F]{2}) Y:(?P<Y>[0-9A-F]{2}) P:(?P<P>[0-9A-F]{2}) SP:(?P<SP>[0-9A-F]{2}) PPU:(?P<PPU>[0-9 ]+,[0-9 ]+) CYC:(?P<CYC>[0-9]+)$").unwrap();
+                static ref RE: regex::Regex = regex::Regex::new(r"^(?P<regs>.+) PPU:(?P<PPU>[0-9 ]+,[0-9 ]+) CYC:(?P<CYC>[0-9]+)$").unwrap();
+            };
+            let caps = RE.captures(&line[48..]).unwrap();
+            Self {
+                pc: u16::from_str_radix(pc, 16).unwrap(),
+                opbytes: opbytes.trim().to_string(),
+                _instruction: instruction.trim().to_string(),
+                regs: caps["regs"].to_string(),
+                _ppu: caps["PPU"].to_string(),
+                _cycle: caps["CYC"].parse().unwrap(),
+            }
+        }
+    }
+
+    #[test]
+    // wget "http://nickmass.com/images/nestest.nes" -O resources/nestest.nes
+    // wget "https://www.qmtpro.com/~nes/misc/nestest.log" -O resources/nestest.log
+    fn test_run_nestest() {
+        let mut test_rom = {
+            let filename = "roms/nestest.nes";
+            std::fs::read(filename).unwrap()
+        };
+        let result_lines = {
+            let filename = "roms/nestest.log";
+            let file = std::fs::File::open(filename).unwrap();
+            std::io::BufReader::new(file).lines().enumerate()
+        };
+
+        let mut ctx = Context::new(&mut test_rom);
+
+        // reset registers
+        const VECTOR_TEST: Addr = 0xC000;
+
+        reset_with_addr(&mut ctx, VECTOR_TEST);
+
+        let mut cpu_bus = cpu_bus::Bus::new(
+            &ctx.program_rom,
+            &mut ctx.work_ram,
+            &mut ctx.ppu,
+            &mut ctx.apu,
+            &mut ctx.keypad,
+            &mut ctx.dma,
+            &mut ctx.mmc,
+        );
+
+        for (lineno, line_) in result_lines {
+            let lineno = lineno + 1;
+            let line = line_.unwrap();
+            log::debug!("{}", line);
+            let expect_res = NesTestLog::new(&line);
+            assert_eq!(
+                ctx.cpu_registers.get_PC(),
+                expect_res.pc,
+                "@ lineno={}, line={}",
+                lineno,
+                line
+            );
+            // assert_eq!(
+            //     debug.format_bytes(),
+            //     expect_res.opbytes,
+            //     "@ lineno={}, line={}",
+            //     lineno,
+            //     line
+            // );
+            assert_eq!(
+                ctx.cpu_registers.to_string(),
+                expect_res.regs,
+                "@ lineno={}, line={}",
+                lineno,
+                line
+            );
+            cpu::step(&mut ctx.cpu_registers, &mut cpu_bus, &mut ctx.nmi);
         }
     }
 }

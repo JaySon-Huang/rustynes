@@ -3,6 +3,8 @@ use super::super::cpu_registers::CpuRegisters;
 use super::super::helper::*;
 use super::super::types::{Addr, Data, Word};
 
+use std::num::Wrapping;
+
 pub fn process_nmi<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     registers.set_break(false);
     push((registers.get_PC() >> 8) as u8, registers, bus);
@@ -530,6 +532,115 @@ pub fn cld<T: CpuRegisters>(registers: &mut T) {
 
 pub fn sed<T: CpuRegisters>(registers: &mut T) {
     registers.set_decimal(true);
+}
+
+// LAX. Load 'A' then Transfer X - LDA + TAX
+pub fn lax<T: CpuRegisters, U: CpuBus>(addr: Word, registers: &mut T, bus: &mut U) {
+    let a = bus.read(addr);
+    registers
+        .set_A(a)
+        .set_X(a)
+        .update_zero_by(a)
+        .update_negative_by(a);
+}
+
+// SAX. Store A 'BitAnd' X
+pub fn sax<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    let v = registers.get_A() & registers.get_X();
+    bus.write(location, v);
+}
+
+// SAX. Store A 'BitAnd' X
+pub fn dcp<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    let v = registers.get_A() & registers.get_X();
+    bus.write(location, v);
+}
+
+pub fn isc<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    // INC
+    let subtrahend = (Wrapping(bus.read(location)) + Wrapping(1)).0;
+    bus.write(location, subtrahend);
+
+    // SBC
+    // High carry means "no borrow", thus negate and subtract
+    let subtrahend = bus.read(location) as i16;
+    let diff: i16 = {
+        let a = Wrapping(registers.get_A() as i16);
+        let v = Wrapping(subtrahend + !registers.get_carry() as i16);
+        a - v
+    }
+    .0;
+    // If the ninth bit is 1, the resulting number is negative => borrow => low carry
+    registers.set_carry((diff & 0x0100) == 0);
+    // Same as ADC, instead of the subtrahend, substitute with it's complement
+    registers.set_overflow({
+        let a = registers.get_A();
+        let l = (a ^ diff as u8) & 0x80;
+        let r = (a ^ (subtrahend as u8)) & 0x80;
+        l != 0 && r != 0
+    });
+    let diff = (diff & 0xFF) as u8;
+    registers
+        .set_A(diff)
+        .update_zero_by(diff)
+        .update_negative_by(diff);
+}
+
+pub fn slo<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    // ASL
+    let mut val = bus.read(location);
+    registers.set_carry(val & 0x80 != 0);
+    val <<= 1;
+    bus.write(location, val);
+    // ORA
+    let a = registers.get_A() | val;
+    registers.set_A(a).update_zero_by(a).update_negative_by(a);
+}
+
+pub fn rla<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    // ROL
+    let prev_c = registers.get_carry();
+    let mut operand = bus.read(location);
+    registers.set_carry(operand & 0x80 != 0);
+    operand <<= 1;
+    operand |= prev_c as u8;
+    bus.write(location, operand);
+    // AND
+    let a = operand & registers.get_A();
+    registers.set_A(a).update_zero_by(a).update_negative_by(a);
+}
+
+pub fn sre<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    // LSR
+    let mut operand = bus.read(location);
+    registers.set_carry((operand & 0x01) != 0);
+    operand >>= 1;
+    bus.write(location, operand);
+    // EOR
+    let a = registers.get_A() ^ operand;
+    registers.set_A(a).update_zero_by(a).update_negative_by(a);
+}
+
+pub fn rra<T: CpuRegisters, U: CpuBus>(location: Word, registers: &mut T, bus: &mut U) {
+    // ROR
+    let prev_c = registers.get_carry();
+    let mut operand: u16 = bus.read(location) as u16;
+    registers.set_carry(operand & 0x01 != 0);
+    operand = (operand >> 1) | ((prev_c as u16) << 7);
+    bus.write(location, (operand & 0xFF) as u8);
+    // ADC
+    let sum = {
+        let a = Wrapping(registers.get_A() as u16);
+        a + Wrapping(operand as u16) + Wrapping(registers.get_carry() as u16)
+    }
+    .0;
+    registers.set_carry(sum & 0x0100 != 0);
+    registers.set_overflow(((registers.get_A() as u16 ^ sum) & (operand ^ sum) & 0x80) != 0);
+    let sum: u8 = (sum & 0xFF) as u8;
+    registers
+        .set_A(sum)
+        .update_zero_by(sum)
+        .update_negative_by(sum);
 }
 
 fn rotate_to_right<T: CpuRegisters>(registers: &mut T, v: Data) -> Data {

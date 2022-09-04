@@ -1,3 +1,5 @@
+extern crate log;
+extern crate regex;
 extern crate rustynes;
 extern crate sdl2;
 

@@ -68,7 +68,7 @@ pub enum Instruction {
     LAX,
     SAX,
     DCP,
-    ISB,
+    ISC,
     SLO,
     RLA,
     SRE,
@@ -317,13 +317,13 @@ lazy_static! {
         m.insert(0xDB, Opecode { name: Instruction::DCP, mode: Addressing::AbsoluteY, cycle: cycles[0xD8] });
         m.insert(0xC3, Opecode { name: Instruction::DCP, mode: Addressing::PreIndexedIndirect, cycle: cycles[0xC3] });
         m.insert(0xD3, Opecode { name: Instruction::DCP, mode: Addressing::PostIndexedIndirect, cycle: cycles[0xD3] });
-        m.insert(0xE7, Opecode { name: Instruction::ISB, mode: Addressing::ZeroPage, cycle: cycles[0xE7] });
-        m.insert(0xF7, Opecode { name: Instruction::ISB, mode: Addressing::ZeroPageX, cycle: cycles[0xF7] });
-        m.insert(0xEF, Opecode { name: Instruction::ISB, mode: Addressing::Absolute, cycle: cycles[0xEF] });
-        m.insert(0xFF, Opecode { name: Instruction::ISB, mode: Addressing::AbsoluteX, cycle: cycles[0xFF] });
-        m.insert(0xFB, Opecode { name: Instruction::ISB, mode: Addressing::AbsoluteY, cycle: cycles[0xF8] });
-        m.insert(0xE3, Opecode { name: Instruction::ISB, mode: Addressing::PreIndexedIndirect, cycle: cycles[0xE3] });
-        m.insert(0xF3, Opecode { name: Instruction::ISB, mode: Addressing::PostIndexedIndirect, cycle: cycles[0xF3] });
+        m.insert(0xE7, Opecode { name: Instruction::ISC, mode: Addressing::ZeroPage, cycle: cycles[0xE7] });
+        m.insert(0xF7, Opecode { name: Instruction::ISC, mode: Addressing::ZeroPageX, cycle: cycles[0xF7] });
+        m.insert(0xEF, Opecode { name: Instruction::ISC, mode: Addressing::Absolute, cycle: cycles[0xEF] });
+        m.insert(0xFF, Opecode { name: Instruction::ISC, mode: Addressing::AbsoluteX, cycle: cycles[0xFF] });
+        m.insert(0xFB, Opecode { name: Instruction::ISC, mode: Addressing::AbsoluteY, cycle: cycles[0xF8] });
+        m.insert(0xE3, Opecode { name: Instruction::ISC, mode: Addressing::PreIndexedIndirect, cycle: cycles[0xE3] });
+        m.insert(0xF3, Opecode { name: Instruction::ISC, mode: Addressing::PostIndexedIndirect, cycle: cycles[0xF3] });
         m.insert(0x07, Opecode { name: Instruction::SLO, mode: Addressing::ZeroPage, cycle: cycles[0x07] });
         m.insert(0x17, Opecode { name: Instruction::SLO, mode: Addressing::ZeroPageX, cycle: cycles[0x17] });
         m.insert(0x0F, Opecode { name: Instruction::SLO, mode: Addressing::Absolute, cycle: cycles[0x0F] });

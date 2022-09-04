@@ -15,13 +15,13 @@ pub struct Noise {
     enable: bool,
 }
 
-extern "C" {
-    fn set_noise_frequency(freq: f32);
-    fn set_noise_volume(volume: f32);
-    fn stop_noise();
-    fn start_noise();
-    // fn close_noise();
-}
+// extern "C" {
+//     fn set_noise_frequency(freq: f32);
+//     fn set_noise_volume(volume: f32);
+//     fn stop_noise();
+//     fn start_noise();
+//     // fn close_noise();
+// }
 
 impl Noise {
     pub fn new() -> Self {
@@ -73,11 +73,11 @@ impl Noise {
     }
 
     pub fn start(&self) {
-        unsafe { start_noise() };
+        // unsafe { start_noise() };
     }
 
     pub fn stop(&self) {
-        unsafe { stop_noise() };
+        // unsafe { stop_noise() };
     }
 
     // Length counter
@@ -97,15 +97,15 @@ impl Noise {
     }
 
     fn set_volume(&self) {
-        unsafe { set_noise_volume(self.get_volume()) }
+        // unsafe { set_noise_volume(self.get_volume()) }
     }
 
     fn set_frequency(&self, data: Data) {
-        unsafe {
-            set_noise_frequency(
-                CPU_CLOCK as f32 / NOISE_TIMER_PERIOD_TABLE[data as usize & 0xF] as f32 / 2f32,
-            )
-        }
+        // unsafe {
+        //     set_noise_frequency(
+        //         CPU_CLOCK as f32 / NOISE_TIMER_PERIOD_TABLE[data as usize & 0xF] as f32 / 2f32,
+        //     )
+        // }
     }
 
     pub fn write(&mut self, addr: Addr, data: Data) {

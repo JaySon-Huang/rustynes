@@ -13,15 +13,15 @@ pub struct Triangle {
     playing: bool,
 }
 
-extern "C" {
-    fn start_oscillator(index: usize);
-    fn stop_oscillator(index: usize);
-    fn close_oscillator(index: usize);
-    fn set_oscillator_frequency(index: usize, freq: usize);
-    fn change_oscillator_frequency(index: usize, freq: usize);
-    fn set_oscillator_volume(index: usize, volume: f32);
-    fn set_oscillator_pulse_width(index: usize, width: f32);
-}
+// extern "C" {
+//     fn start_oscillator(index: usize);
+//     fn stop_oscillator(index: usize);
+//     fn close_oscillator(index: usize);
+//     fn set_oscillator_frequency(index: usize, freq: usize);
+//     fn change_oscillator_frequency(index: usize, freq: usize);
+//     fn set_oscillator_volume(index: usize, volume: f32);
+//     fn set_oscillator_pulse_width(index: usize, width: f32);
+// }
 
 impl Triangle {
     pub fn new(index: usize) -> Self {
@@ -44,10 +44,10 @@ impl Triangle {
     fn stop_oscillator(&mut self) {
         // self.length_counter = 0;
         // self.linear_counter = 0;
-        unsafe {
-            stop_oscillator(self.index);
-            set_oscillator_volume(self.index, 0.0);
-        };
+        // unsafe {
+        //     stop_oscillator(self.index);
+        //     set_oscillator_volume(self.index, 0.0);
+        // };
     }
 
     pub fn enable(&mut self) {
@@ -86,18 +86,18 @@ impl Triangle {
     }
 
     fn change_frequency(&self) {
-        unsafe {
-            change_oscillator_frequency(self.index, self.frequency);
-        }
+        // unsafe {
+        //     change_oscillator_frequency(self.index, self.frequency);
+        // }
     }
 
     pub fn start(&mut self) {
         if !self.playing {
             self.playing = true;
-            unsafe {
-                start_oscillator(self.index);
-                set_oscillator_frequency(self.index, self.frequency);
-            };
+            // unsafe {
+            //     start_oscillator(self.index);
+            //     set_oscillator_frequency(self.index, self.frequency);
+            // };
         } else {
             self.change_frequency();
         }
@@ -108,7 +108,7 @@ impl Triangle {
     }
 
     fn set_volume(&self) {
-        unsafe { set_oscillator_volume(self.index, self.get_volume()) }
+        // unsafe { set_oscillator_volume(self.index, self.get_volume()) }
     }
 
     pub fn write(&mut self, addr: Addr, data: Data) {

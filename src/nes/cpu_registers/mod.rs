@@ -1,4 +1,5 @@
 use super::helper::*;
+use super::types::Addr;
 
 #[derive(Debug)]
 struct Status {
@@ -23,8 +24,39 @@ pub struct Registers {
     P: Status,
 }
 
+impl Status {
+    fn to_u8(&self) -> u8 {
+        (self.negative as u8) << 7
+            | (self.overflow as u8) << 6
+            | 1u8 << 5 // unused bit, supposed to be always 1
+            | (self.break_mode as u8) << 4
+            | (self.decimal_mode as u8) << 3
+            | (self.interrupt as u8) << 2
+            | (self.zero as u8) << 1
+            | (self.carry as u8)
+    }
+
+    fn reset(&mut self) -> &mut Self {
+        self.set(0x24)
+    }
+
+    fn set(&mut self, v: u8) -> &mut Self {
+        self.negative = v & 0x80 == 0x80;
+        self.overflow = v & 0x40 == 0x40;
+        self.reserved = true; // unused bit, supposed to be always 1
+        self.break_mode = v & 0x10 == 0x10;
+        self.decimal_mode = v & 0x08 == 0x08;
+        self.interrupt = v & 0x04 == 0x04;
+        self.zero = v & 0x02 == 0x02;
+        self.carry = v & 0x01 == 0x01;
+        self
+    }
+}
+
 #[allow(non_snake_case)]
 pub trait CpuRegisters {
+    fn reset(&mut self, addr: Addr);
+
     fn get_PC(&self) -> u16;
 
     fn get_A(&self) -> u8;
@@ -118,6 +150,15 @@ impl Registers {
 
 #[allow(non_snake_case)]
 impl CpuRegisters for Registers {
+    fn reset(&mut self, addr: Addr)    {
+        self.A = 0;
+        self.X = 0;
+        self.Y = 0;
+        self.P.reset();
+        self.PC = addr;
+        self.SP = 0xFD; // documented startup state
+    }
+
     fn get_PC(&self) -> u16 {
         self.PC
     }
@@ -289,25 +330,45 @@ impl CpuRegisters for Registers {
     }
 }
 
-#[test]
-fn get_p() {
-    let reg = Registers::new();
-    let p = reg.get_P();
-    assert_eq!(p, 0x34);
+impl std::fmt::Display for Registers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
+            self.A,
+            self.X,
+            self.Y,
+            self.P.to_u8(),
+            self.SP,
+        )
+    }
 }
 
-#[test]
-fn update_zero() {
-    let mut reg = Registers::new();
-    reg.update_zero_by(0);
-    let p = reg.get_P();
-    assert_eq!(p, 0x36);
-}
+#[cfg(test)]
+mod tests {
 
-#[test]
-fn update_negative() {
-    let mut reg = Registers::new();
-    reg.update_negative_by(0x80);
-    let p = reg.get_P();
-    assert_eq!(p, 0xB4);
+    use super::*;
+
+    #[test]
+    fn get_p() {
+        let reg = Registers::new();
+        let p = reg.get_P();
+        assert_eq!(p, 0x34);
+    }
+
+    #[test]
+    fn update_zero() {
+        let mut reg = Registers::new();
+        reg.update_zero_by(0);
+        let p = reg.get_P();
+        assert_eq!(p, 0x36);
+    }
+
+    #[test]
+    fn update_negative() {
+        let mut reg = Registers::new();
+        reg.update_negative_by(0x80);
+        let p = reg.get_P();
+        assert_eq!(p, 0xB4);
+    }
 }

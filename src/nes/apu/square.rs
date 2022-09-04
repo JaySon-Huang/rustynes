@@ -23,13 +23,13 @@ pub struct Square {
 }
 
 extern "C" {
-    fn start_oscillator(index: usize);
-    fn stop_oscillator(index: usize);
-    // fn close_oscillator(index: usize);
-    fn set_oscillator_frequency(index: usize, freq: usize);
-    fn change_oscillator_frequency(index: usize, freq: usize);
-    fn set_oscillator_volume(index: usize, volume: f32);
-    fn set_oscillator_pulse_width(index: usize, width: f32);
+    // fn start_oscillator(index: usize);
+    // fn stop_oscillator(index: usize);
+    // // fn close_oscillator(index: usize);
+    // fn set_oscillator_frequency(index: usize, freq: usize);
+    // fn change_oscillator_frequency(index: usize, freq: usize);
+    // fn set_oscillator_volume(index: usize, volume: f32);
+    // fn set_oscillator_pulse_width(index: usize, width: f32);
 }
 
 impl Square {
@@ -123,10 +123,10 @@ impl Square {
     pub fn start(&mut self) {
         if !self.playing {
             self.playing = true;
-            unsafe {
-                start_oscillator(self.index);
-                set_oscillator_frequency(self.index, self.frequency);
-            };
+            // unsafe {
+            //     start_oscillator(self.index);
+            //     set_oscillator_frequency(self.index, self.frequency);
+            // };
         } else {
             self.change_frequency();
         }
@@ -135,9 +135,9 @@ impl Square {
     pub fn stop(&mut self) {
         if self.playing {
             self.playing = false;
-            unsafe {
-                stop_oscillator(self.index);
-            };
+            // unsafe {
+            //     stop_oscillator(self.index);
+            // };
         }
     }
 
@@ -169,15 +169,15 @@ impl Square {
                 };
             }
         }
-        unsafe {
-            set_oscillator_volume(self.index, self.get_volume());
-        };
+        // unsafe {
+        //     set_oscillator_volume(self.index, self.get_volume());
+        // };
     }
 
     fn change_frequency(&self) {
-        unsafe {
-            change_oscillator_frequency(self.index, self.frequency);
-        }
+        // unsafe {
+        //     change_oscillator_frequency(self.index, self.frequency);
+        // }
     }
 
     // fn reset(&mut self) {
@@ -193,10 +193,10 @@ impl Square {
                 self.envelope_loop_enable = (data & 0x10) != 0;
                 let duty = (data >> 6) & 0x3;
                 self.is_length_counter_enable = data & 0x20 == 0x00;
-                unsafe {
-                    set_oscillator_volume(self.index, self.get_volume());
-                    set_oscillator_pulse_width(self.index, self.get_pulse_width(duty as usize));
-                }
+                // unsafe {
+                //     set_oscillator_volume(self.index, self.get_volume());
+                //     set_oscillator_pulse_width(self.index, self.get_pulse_width(duty as usize));
+                // }
             }
             0x01 => {
                 // Sweep

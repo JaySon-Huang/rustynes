@@ -9,14 +9,19 @@ use std::fmt::Debug;
 
 use super::bus::cpu_bus::CpuBus;
 use super::cpu_registers::CpuRegisters;
-use super::types::Data;
+use super::types::{Data, Addr};
 
-pub fn reset<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
-    let pc = bus.read_word(0xFFFC);
-    registers.set_PC(pc);
+pub fn reset_with_addr<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U, addr: Addr) {
+    registers.reset(addr);
 }
 
-pub fn run<T: CpuRegisters + Debug, U: CpuBus>(
+pub fn reset<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
+    const RESET_VECTOR: Addr = 0xFFFC;
+    let addr = bus.read_word(RESET_VECTOR);
+    reset_with_addr(registers, bus, addr);
+}
+
+pub fn step<T: CpuRegisters + Debug, U: CpuBus>(
     registers: &mut T,
     bus: &mut U,
     nmi: &mut bool,
@@ -103,14 +108,14 @@ pub fn run<T: CpuRegisters + Debug, U: CpuBus>(
         Instruction::BEQ => beq(operand, registers),
         Instruction::SED => sed(registers),
         Instruction::CLD => cld(registers),
-        Instruction::LAX => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::SAX => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::DCP => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::ISB => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::SLO => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::RLA => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::SRE => unimplemented!("{}", "TODO:Undocumented instruction"),
-        Instruction::RRA => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::LAX => lax(operand, registers, bus),
+        Instruction::SAX => sax(operand, registers, bus),
+        Instruction::DCP => dcp(operand, registers,bus),
+        Instruction::ISC => isc(operand, registers, bus),
+        Instruction::SLO => slo(operand, registers, bus),
+        Instruction::RLA => rla(operand, registers, bus),
+        Instruction::SRE => sre(operand, registers, bus),
+        Instruction::RRA => rra(operand, registers, bus),
     }
     code.cycle
 }
