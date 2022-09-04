@@ -13,7 +13,6 @@ use super::types::Data;
 
 pub fn reset<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     let pc = bus.read_word(0xFFFC);
-    // println!("read address {:X} @ {:X}", pc, 0xFFFC);
     registers.set_PC(pc);
 }
 
@@ -104,14 +103,14 @@ pub fn run<T: CpuRegisters + Debug, U: CpuBus>(
         Instruction::BEQ => beq(operand, registers),
         Instruction::SED => sed(registers),
         Instruction::CLD => cld(registers),
-        Instruction::LAX => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::SAX => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::DCP => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::ISB => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::SLO => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::RLA => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::SRE => println!("{}", "TODO:Undocumented instruction"),
-        Instruction::RRA => println!("{}", "TODO:Undocumented instruction"),
+        Instruction::LAX => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::SAX => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::DCP => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::ISB => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::SLO => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::RLA => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::SRE => unimplemented!("{}", "TODO:Undocumented instruction"),
+        Instruction::RRA => unimplemented!("{}", "TODO:Undocumented instruction"),
     }
     code.cycle
 }

@@ -50,14 +50,21 @@ pub struct App {
 
 impl App {
     pub fn new() -> App {
+        let scale = 3.0;
+
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let window = video_subsystem
-            .window("rustynes", WIDTH, HEIGHT)
+            .window(
+                "rustynes",
+                (WIDTH as f32 * scale) as u32,
+                (HEIGHT as f32 * scale) as u32,
+            )
             .position_centered()
             .build()
             .unwrap();
-        let canvas = window.into_canvas().build().unwrap();
+        let mut canvas = window.into_canvas().build().unwrap();
+        canvas.set_scale(scale, scale).unwrap();
 
         App {
             sdl_context,
