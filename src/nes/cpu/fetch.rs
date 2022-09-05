@@ -72,7 +72,7 @@ pub fn fetch_pre_indexed_indirect<T: CpuRegisters, U: CpuBus>(
     registers: &mut T,
     bus: &mut U,
 ) -> Word {
-    let addr = ((fetch(registers, bus) + registers.get_X()) & 0xFF) as Addr;
+    let addr = fetch(registers, bus).wrapping_add(registers.get_X()) as Addr;
     let addr = (bus.read(addr) as Addr) + ((bus.read((addr + 1) as Addr & 0xFF) as Addr) << 8);
     addr & 0xFFFF
 }

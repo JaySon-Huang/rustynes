@@ -9,7 +9,7 @@ pub fn process_nmi<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     registers.set_break(false);
     push((registers.get_PC() >> 8) as u8, registers, bus);
     push(registers.get_PC() as u8, registers, bus);
-    push_status(registers, bus);
+    push_status(registers, bus, false);
     registers.set_interrupt(true);
     let next = bus.read_word(0xFFFA);
     registers.set_PC(next);
@@ -112,13 +112,15 @@ pub fn tsx<T: CpuRegisters>(registers: &mut T) {
 }
 
 pub fn php<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
-    registers.set_break(true);
-    push_status(registers, bus);
+    // PHP pushes with the B flag as 1, no matter what
+    push_status(registers, bus, true);
 }
 
 pub fn plp<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
-    registers.set_reserved(true);
-    let status = pop(registers, bus);
+    // pull flags but keep B
+    // registers.set_reserved(true);
+    let previous_b = (registers.get_break() as u8) << 4;
+    let status = pop(registers, bus) & 0xCF | previous_b;
     registers.set_P(status);
 }
 
@@ -382,12 +384,12 @@ pub fn ror<T: CpuRegisters, U: CpuBus>(operand: Word, registers: &mut T, bus: &m
 }
 
 pub fn inx<T: CpuRegisters>(registers: &mut T) {
-    let x = registers.get_X() + 1;
+    let x = registers.get_X().wrapping_add(1);
     registers.set_X(x).update_negative_by(x).update_zero_by(x);
 }
 
 pub fn iny<T: CpuRegisters>(registers: &mut T) {
-    let y = registers.get_Y() + 1;
+    let y = registers.get_Y().wrapping_add(1);
     registers.set_Y(y).update_negative_by(y).update_zero_by(y);
 }
 
@@ -445,8 +447,7 @@ pub fn brk<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
     let interrupt = registers.get_interrupt();
     registers.inc_PC();
     push_pc(registers, bus);
-    registers.set_break(true);
-    push_status(registers, bus);
+    push_status(registers, bus, true);
     registers.set_interrupt(true);
     // Ignore interrupt when already set.
     if !interrupt {
@@ -657,15 +658,14 @@ fn push<T: CpuRegisters, U: CpuBus>(data: Data, registers: &mut T, bus: &mut U) 
     registers.dec_SP();
 }
 
-fn push_status<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
-    let status = registers.get_P();
+fn push_status<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U, with_b_flag: bool) {
+    let status = registers.get_P() | if with_b_flag { 1 << 4 } else { 0 };
     push(status, registers, bus);
 }
 
 fn pop<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) -> Data {
-    registers.inc_SP();
-    let addr = 0x0100 | registers.get_SP() as Addr;
-    bus.read(addr)
+    let sp = registers.inc_SP().get_SP() as Addr;
+    bus.read(0x0100 | sp)
 }
 
 fn pop_pc<T: CpuRegisters, U: CpuBus>(registers: &mut T, bus: &mut U) {
@@ -843,21 +843,46 @@ mod test {
 
     #[test]
     fn test_php() {
-        let mut reg = Registers::new();
-        reg.set_SP(0xA5);
-        let mut bus = MockBus::new();
-        php(&mut reg, &mut bus);
-        assert_eq!(bus.mem[0x01A5], 0x34);
+        {
+            let mut reg = Registers::new();
+            reg.set_SP(0xA5);
+            reg.set_break(false);
+            let mut bus = MockBus::new();
+            php(&mut reg, &mut bus);
+            assert_eq!(bus.mem[0x01A5], 0x34);
+            assert_eq!(reg.get_break(), false);
+        }
+        {
+            let mut reg = Registers::new();
+            reg.set_SP(0xA5);
+            reg.set_break(true);
+            let mut bus = MockBus::new();
+            php(&mut reg, &mut bus);
+            assert_eq!(bus.mem[0x01A5], 0x34);
+            assert_eq!(reg.get_break(), true);
+        }
     }
 
     #[test]
     fn test_plp() {
-        let mut reg = Registers::new();
-        reg.set_SP(0xA5);
-        let mut bus = MockBus::new();
-        bus.mem[0x1A6] = 0xA5;
-        plp(&mut reg, &mut bus);
-        assert_eq!(reg.get_P(), 0xA5);
+        {
+            let mut reg = Registers::new();
+            reg.set_SP(0xA5);
+            reg.set_break(false);
+            let mut bus = MockBus::new();
+            bus.mem[0x1A6] = 0xF5;
+            plp(&mut reg, &mut bus);
+            assert_eq!(reg.get_P(), 0xC5);
+        }
+        {
+            let mut reg = Registers::new();
+            reg.set_SP(0xA5);
+            reg.set_break(true);
+            let mut bus = MockBus::new();
+            bus.mem[0x1A6] = 0xF5;
+            plp(&mut reg, &mut bus);
+            assert_eq!(reg.get_P(), 0xD5);
+        }
     }
 
     #[test]
@@ -1087,6 +1112,10 @@ mod test {
         reg.set_X(0x55);
         inx(&mut reg);
         assert_eq!(reg.get_X(), 0x56);
+
+        reg.set_X(0xFF);
+        inx(&mut reg);
+        assert_eq!(reg.get_X(), 0);
     }
 
     #[test]
@@ -1095,6 +1124,10 @@ mod test {
         reg.set_Y(0x55);
         iny(&mut reg);
         assert_eq!(reg.get_Y(), 0x56);
+
+        reg.set_Y(0xFF);
+        iny(&mut reg);
+        assert_eq!(reg.get_Y(), 0);
     }
     #[test]
     fn test_inc() {

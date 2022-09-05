@@ -209,6 +209,7 @@ mod tests {
             let lineno = lineno + 1;
             let line = line_.unwrap();
             log::debug!("{}", line);
+            println!("lineno={}, {}", lineno, line);
             let expect_res = NesTestLog::new(&line);
             assert_eq!(
                 ctx.cpu_registers.get_PC(),
